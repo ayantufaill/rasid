@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageHeader from '../../components/PageHeader';
 import Icon from '../../components/Icon';
-import { I } from '../../data/icons';
+import PhotoCapture from '../../components/PhotoCapture';
+import VoiceRecorder from '../../components/VoiceRecorder';
 import { CATS, KINDL } from '../../data/mockData';
 import { useAppState } from '../../state/AppState';
 
@@ -15,15 +16,19 @@ export default function ReportForm() {
   const { addReport, toast } = useAppState();
   const [selCat, setSelCat] = useState(null);
   const [selSev, setSelSev] = useState(null);
-  const [photoOK, setPhotoOK] = useState(false);
-  const [voiceOn, setVoiceOn] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState(null);
+  const [voiceUrl, setVoiceUrl] = useState(null);
+  const [transcript, setTranscript] = useState('');
+  const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setSelCat(null);
     setSelSev(null);
-    setPhotoOK(false);
-    setVoiceOn(false);
+    setPhotoUrl(null);
+    setVoiceUrl(null);
+    setTranscript('');
+    setNote('');
   }, [kind]);
 
   const kindLabel = KINDL[kind] || 'Hazard';
@@ -39,6 +44,9 @@ export default function ReportForm() {
         severity: selSev,
         kind: kind === 'anon' ? 'hazard' : kind,
         clustered,
+        photoUrl,
+        voiceUrl,
+        description: note.trim() || transcript.trim() || null,
       });
       navigate('/report/confirm', { state: { ticket, clustered, kind } });
     } catch (err) {
@@ -92,27 +100,23 @@ export default function ReportForm() {
           <div className="lbl">
             Photo <span className="c">required for critical</span>
           </div>
-          <button className={`pbox${photoOK ? ' ok' : ''}`} onClick={() => setPhotoOK((v) => !v)}>
-            <Icon path={I.cam} color={photoOK ? '#3ECF8E' : '#5E6C76'} size={22} />
-            {photoOK ? 'Photo attached · just now · 27.4N 35.1E' : 'Tap to capture — location stamped automatically'}
-          </button>
+          <PhotoCapture value={photoUrl} onChange={setPhotoUrl} />
 
           <div className="lbl">Describe it</div>
-          <button className={`voice${voiceOn ? ' rec' : ''}`} onClick={() => setVoiceOn((v) => !v)}>
-            <div className="mic">
-              <Icon path={I.mic} color={voiceOn ? '#1a1330' : '#93A2AC'} size={16} />
-            </div>
-            <div>
-              <div className="vt">{voiceOn ? 'Listening…' : 'Speak in any language'}</div>
-              <div className="vs">{voiceOn ? 'Arabic detected · tap to stop' : 'Arabic, English, Urdu, Hindi, Bengali, Tagalog'}</div>
-            </div>
-          </button>
-          <div className={`transcript${voiceOn ? ' show' : ''}`}>
-            <div className="tag">Transcribed and translated automatically</div>
-            <div className="ar">في عدة يدوية على السقالة بدون حاجز، ممكن تقع على الممر تحت</div>
-            <div className="en">There are hand tools on the scaffold with no toe-board — they could fall onto the walkway below.</div>
-          </div>
-          <textarea className="note" placeholder="Or type instead" style={{ marginTop: 9 }} />
+          <VoiceRecorder
+            value={voiceUrl}
+            onChange={(url, text) => {
+              setVoiceUrl(url);
+              if (text) setTranscript(text);
+            }}
+          />
+          <textarea
+            className="note"
+            placeholder="Or type instead"
+            style={{ marginTop: 9 }}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
 
           {clustered && (
             <div className="info">

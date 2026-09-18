@@ -5,7 +5,8 @@ import { useAuth } from './AuthContext';
 
 const AppStateContext = createContext(null);
 
-const REPORT_SELECT = 'id, zone_id, category, severity, kind, status, cluster_count, description, created_at, contractor:contractors(name)';
+const REPORT_SELECT =
+  'id, zone_id, category, severity, kind, status, cluster_count, description, photo_url, voice_url, created_at, contractor:contractors(name)';
 
 function mapRow(row) {
   return {
@@ -19,6 +20,8 @@ function mapRow(row) {
     k: row.kind,
     ctr: row.contractor?.name || '—',
     description: row.description,
+    photoUrl: row.photo_url,
+    voiceUrl: row.voice_url,
     createdAt: row.created_at,
   };
 }
@@ -44,26 +47,26 @@ export function AppStateProvider({ children }) {
     toastTimer.current = setTimeout(() => setToastOn(false), 2400);
   }, []);
 
-  // initial load
+  // initial load — aborts in-flight requests on cleanup so React 18/19 StrictMode's
+  // dev-only double-effect doesn't leave two competing fetches racing for connection
+  // slots (the discarded one was winning the race often enough to show an empty page).
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     async function load() {
       setLoading(true);
       const [reportsRes, zonesRes, contractorsRes] = await Promise.all([
-        supabase.from('reports').select(REPORT_SELECT).order('created_at', { ascending: false }),
-        supabase.from('zones').select('*'),
-        supabase.from('contractors').select('*'),
+        supabase.from('reports').select(REPORT_SELECT).order('created_at', { ascending: false }).abortSignal(controller.signal),
+        supabase.from('zones').select('*').abortSignal(controller.signal),
+        supabase.from('contractors').select('*').abortSignal(controller.signal),
       ]);
-      if (cancelled) return;
+      if (controller.signal.aborted) return;
       if (reportsRes.data) setReports(reportsRes.data.map(mapRow));
       if (zonesRes.data) setZones(zonesRes.data);
       if (contractorsRes.data) setContractors(contractorsRes.data);
       setLoading(false);
     }
-    load();
-    return () => {
-      cancelled = true;
-    };
+    load().catch(() => {});
+    return () => controller.abort();
   }, []);
 
   // realtime: keep the feed live across tabs/devices
@@ -96,7 +99,7 @@ export function AppStateProvider({ children }) {
   }, []);
 
   const addReport = useCallback(
-    async ({ category, severity, kind, clustered, zoneId = 'A1' }) => {
+    async ({ category, severity, kind, clustered, zoneId = 'A1', photoUrl, voiceUrl, description }) => {
       for (let attempt = 0; attempt < 5; attempt++) {
         const ticket = `RSD-${zoneId}-0${Math.floor(Math.random() * 90 + 10)}`;
         const { data, error } = await supabase
@@ -110,6 +113,9 @@ export function AppStateProvider({ children }) {
             status: 'open',
             cluster_count: clustered ? 7 : 1,
             reporter_id: user?.id ?? null,
+            photo_url: photoUrl ?? null,
+            voice_url: voiceUrl ?? null,
+            description: description ?? null,
           })
           .select(REPORT_SELECT)
           .single();

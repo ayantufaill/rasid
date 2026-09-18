@@ -18,7 +18,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function ReportsTable({ title, wide }) {
-  const { reports, zoneFilter, openDrawer } = useAppState();
+  const { reports, loading, zoneFilter, openDrawer } = useAppState();
   const [fc, setFc] = useState('');
   const [fs, setFs] = useState('');
   const [fk, setFk] = useState('');
@@ -49,7 +49,9 @@ export default function ReportsTable({ title, wide }) {
     { key: 'a', header: 'Age' },
   ];
 
-  const count = (zoneFilter ? `Module ${zoneFilter} — ` : '') + `${rows.length} record${rows.length !== 1 ? 's' : ''}`;
+  const count = loading
+    ? 'Loading…'
+    : (zoneFilter ? `Module ${zoneFilter} — ` : '') + `${rows.length} record${rows.length !== 1 ? 's' : ''}`;
 
   return (
     <Panel title={title ? `${title} · ${count}` : count}>

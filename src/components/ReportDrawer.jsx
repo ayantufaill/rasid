@@ -34,22 +34,20 @@ export default function ReportDrawer() {
             Module {r.z} · {r.ctr} · {r.a} ago · {r.r} independent report{r.r > 1 ? 's' : ''}
           </div>
 
-          {r.st === 'verify' || r.st === 'resolved' ? (
-            <div className="dphotos">
-              <div className="p">
-                <Icon path={I.cam} color="#5E6C76" size={18} />
-                Before
-              </div>
-              <div className="p">
-                <Icon path={I.cam} color="#3ECF8E" size={18} />
-                After — control in place
-              </div>
-            </div>
+          {r.photoUrl ? (
+            <img
+              src={r.photoUrl}
+              alt="Field report"
+              style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 'var(--r)', border: '1px solid var(--line)', margin: '14px 0' }}
+            />
           ) : (
             <div className="dphoto">
               <Icon path={I.cam} color="#5E6C76" size={18} />
-              <span style={{ marginLeft: 8 }}>Field photo · GPS stamped</span>
+              <span style={{ marginLeft: 8 }}>No photo attached</span>
             </div>
+          )}
+          {r.voiceUrl && (
+            <audio src={r.voiceUrl} controls style={{ width: '100%', height: 34, marginBottom: 14 }} />
           )}
 
           <div className="dsec">
