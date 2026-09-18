@@ -12,11 +12,12 @@ const CLUSTERED_CATS = ['falling', 'scaffold'];
 export default function ReportForm() {
   const { kind = 'hazard' } = useParams();
   const navigate = useNavigate();
-  const { nextTicket, addReport } = useAppState();
+  const { addReport, toast } = useAppState();
   const [selCat, setSelCat] = useState(null);
   const [selSev, setSelSev] = useState(null);
   const [photoOK, setPhotoOK] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setSelCat(null);
@@ -29,22 +30,22 @@ export default function ReportForm() {
   const clustered = CLUSTERED_CATS.includes(selCat);
   const ready = Boolean(selCat && selSev);
 
-  function submit() {
-    if (!ready) return;
-    const ticket = nextTicket();
-    const id = `RSD-A1-0${ticket}`;
-    addReport({
-      id,
-      z: 'A1',
-      c: selCat,
-      s: selSev,
-      r: clustered ? 7 : 1,
-      st: 'open',
-      a: 'now',
-      k: kind === 'anon' ? 'hazard' : kind,
-      ctr: 'Al Sahra Steel',
-    });
-    navigate('/report/confirm', { state: { ticket: id, clustered, kind } });
+  async function submit() {
+    if (!ready || submitting) return;
+    setSubmitting(true);
+    try {
+      const ticket = await addReport({
+        category: selCat,
+        severity: selSev,
+        kind: kind === 'anon' ? 'hazard' : kind,
+        clustered,
+      });
+      navigate('/report/confirm', { state: { ticket, clustered, kind } });
+    } catch (err) {
+      toast(err.message || 'Could not submit — check your connection');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -122,8 +123,8 @@ export default function ReportForm() {
       )}
 
       <div className="subbar">
-        <button className={`sbtn${ready ? ' rdy' : ''}`} onClick={submit}>
-          {kind === 'anon' ? 'Send anonymously' : 'Submit report'}
+        <button className={`sbtn${ready && !submitting ? ' rdy' : ''}`} onClick={submit} disabled={submitting}>
+          {submitting ? 'Submitting…' : kind === 'anon' ? 'Send anonymously' : 'Submit report'}
         </button>
       </div>
     </div>

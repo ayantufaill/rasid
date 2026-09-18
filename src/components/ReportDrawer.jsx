@@ -10,10 +10,14 @@ export default function ReportDrawer() {
   const open = Boolean(r);
   const cat = r ? catById(r.c) : null;
 
-  function resolve() {
-    const status = advanceReport(r.id);
-    closeDrawer();
-    toast(r.id + (status === 'resolved' ? ' verified and closed' : ' — control assigned'));
+  async function resolve() {
+    try {
+      const status = await advanceReport(r.id);
+      closeDrawer();
+      toast(r.id + (status === 'resolved' ? ' verified and closed' : ' — control assigned'));
+    } catch (err) {
+      toast(err.message || 'Could not update — check your connection');
+    }
   }
 
   return (
@@ -50,7 +54,7 @@ export default function ReportDrawer() {
 
           <div className="dsec">
             <div className="dl">What was reported</div>
-            <div className="dd">{DESCS[r.c]}</div>
+            <div className="dd">{r.description || DESCS[r.c]}</div>
           </div>
 
           {r.r > 1 && (

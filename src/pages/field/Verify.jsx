@@ -9,10 +9,14 @@ export default function Verify() {
   const navigate = useNavigate();
   const { advanceReport, toast } = useAppState();
 
-  function closeOut() {
-    const status = advanceReport(id);
-    navigate('/');
-    toast(`${id} ${status === 'resolved' ? 'verified and closed' : 'control assigned'}`);
+  async function closeOut() {
+    try {
+      const status = await advanceReport(id);
+      navigate('/');
+      toast(`${id} ${status === 'resolved' ? 'verified and closed' : 'control assigned'}`);
+    } catch (err) {
+      toast(err.message || 'Could not update — check your connection');
+    }
   }
 
   return (

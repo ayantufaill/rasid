@@ -4,9 +4,11 @@ import Icon from './Icon';
 import { I } from '../data/icons';
 import { FIELD_TABS, NAV_GROUPS } from '../nav';
 import { useAppState } from '../state/AppState';
+import { useAuth } from '../state/AuthContext';
 import { Toast } from './ui';
 
 function NavList({ pathname, onNavigate }) {
+  const { profile, user, signOut } = useAuth();
   return (
     <>
       <div className="sgrp">Field</div>
@@ -31,6 +33,16 @@ function NavList({ pathname, onNavigate }) {
           ))}
         </div>
       ))}
+      <div className="sgrp">{profile?.full_name || user?.email}</div>
+      <button
+        className="sitem"
+        onClick={() => {
+          onNavigate?.();
+          signOut();
+        }}
+      >
+        Sign out
+      </button>
     </>
   );
 }

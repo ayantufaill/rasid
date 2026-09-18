@@ -1,4 +1,3 @@
-import { CTRS } from '../../data/mockData';
 import { useAppState } from '../../state/AppState';
 import { Panel, Bars, RTable } from '../../components/ui';
 
@@ -6,8 +5,8 @@ const GRADE_COLOR = { A: 'var(--green)', B: 'var(--green)', C: 'var(--amber)', D
 const AVG_DAYS = { A: '1.4', B: '2.1', C: '3.8', D: '6.2' };
 
 export default function Contractors() {
-  const { toast } = useAppState();
-  const withRate = CTRS.map((c) => ({ ...c, rate: (c.hz / c.mh) * 100000 }));
+  const { toast, contractors } = useAppState();
+  const withRate = contractors.map((c) => ({ ...c, rate: c.mh ? (c.hz / c.mh) * 100000 : 0 }));
 
   return (
     <div>
@@ -67,7 +66,7 @@ export default function Contractors() {
         </Panel>
         <Panel title="Closure discipline">
           <Bars
-            rows={CTRS.map((c) => ({
+            rows={contractors.map((c) => ({
               label: c.n,
               value: c.cl,
               display: `${c.cl}%`,

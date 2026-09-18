@@ -2,16 +2,27 @@ import { useNavigate } from 'react-router-dom';
 import Icon from '../../components/Icon';
 import { I } from '../../data/icons';
 import { Card, HazardCard } from '../../components/ui';
+import { useAuth } from '../../state/AuthContext';
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
 export default function Home() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   return (
     <div>
       <div className="synbar">
         <div className="pulse" />
         Working offline — 3 reports will send when you reach site Wi-Fi
       </div>
-      <div className="greet display">Good morning, Yousef</div>
+      <div className="greet display">
+        {greeting()}, {profile?.full_name || 'there'}
+      </div>
       <div className="greetsub">Coastal Package 3 · Module A1 · Scaffolding crew</div>
 
       <button className="big-cta" onClick={() => navigate('/report')}>

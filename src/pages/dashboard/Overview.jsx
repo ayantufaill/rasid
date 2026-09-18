@@ -1,4 +1,4 @@
-import { ZONES, SC } from '../../data/mockData';
+import { SC } from '../../data/mockData';
 import { useAppState } from '../../state/AppState';
 import { Panel, StripStats, Spark, KV } from '../../components/ui';
 import ReportsTable from './ReportsTable';
@@ -9,7 +9,7 @@ const WEEKS = [
 const WEEK_LABELS = ['W31', 'W32', 'W33', 'W34', 'W35', 'W36', 'W37', 'W38'];
 
 export default function Overview() {
-  const { zoneFilter, setZoneFilter } = useAppState();
+  const { zones, zoneFilter, setZoneFilter } = useAppState();
 
   return (
     <div>
@@ -35,7 +35,7 @@ export default function Overview() {
         <div>
           <Panel title="Modules" action={<button className="sm" onClick={() => setZoneFilter(null)}>reset</button>}>
             <div className="zgrid">
-              {ZONES.map((z) => (
+              {zones.map((z) => (
                 <button key={z.id} className={`ztile${zoneFilter === z.id ? ' on' : ''}`} onClick={() => setZoneFilter(zoneFilter === z.id ? null : z.id)}>
                   <div className="zid">MODULE {z.id}</div>
                   <div className="zn">{z.n}</div>
